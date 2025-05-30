@@ -1,0 +1,79 @@
+https://drive.google.com/drive/folders/1qcpF6tvhWfgsQzw-Bp_pvyzkq4lUsFsL
+
+# FastAPI
+uvicorm main:app --reload
+
+[자동 문서화]
+Swagger UI
+- 테스트 가능 (curl URL도 가능)
+ReDoc
+- 직관적 UI
+
+----------------------------------------
+
+[HTTP Request 구성]
+header: 메타데이터
+body: 데이터
+
+[HTTP Request 타입힌트]
+import typing과 pydantic 사용 권장
+- List[int] = Query([]) # pydantic은 = Query([]) 생략
+- Dict[str, int] # dict도 가능
+- Optional[str] = None: 문자열 또는 None 
+- Union[str, int]: 문자열 또는 정수
+- List[Dict[str, Union[str, int]]]
+pydantic Field 제약 조건 및 추가 정보
+- str = Field(...,): 문자열 필수
+- str = Field(None,): 문자열 없어도 가능
+- List[str] = Field(default=[],): 디폴트값 설정
+- min_length, max_length: 문자열 길이 제한
+- gt(e), lt(e): 숫자 제한
+
+[HTTP Request 메소드]
+- GET (header)
+- POST (body)
+- PUT (body)
+- DELETE (body)
+
+[HTTP Response 코드]
+- 2xx: 성공
+- 3xx: 리다이렉션
+- 4xx: 실패
+- 5xx: 서버 오류
+
+----------------------------------------
+
+[HTTP Response 모델]
+reponse_model는 응답 형태 제한
+- reponse_model=Item: Item pydantic 구조만 응답
+- reponse_model=List[Item]
+- reponse_model=Union[Cat, Dog]
+
+[HTTP Response 클래스]
+응답의 종류 header에 명시 # 자동이여서 생략 가능
+- JSONResponse
+- HTMLResponse
+- PlainTextResponse
+
+----------------------------------------
+
+[HTTP Exception 클라스]
+raise HTTPException(status_code=400, detail=str(e))
+
+----------------------------------------
+
+[템플릿]
+HTML(프런트엔드) 특정 부분을 백엔드가 채워주는 것
+백엔드: templates = Jinja2Templates(directory="templates", auto_reload=True)
+@app.get("/inherit")
+def template_inherit(request: Request):
+    my_text = "FastAPI와 Jinja2를 이용한 예시입니다."
+    return templates.TemplateResponse("index.html", {"request": request, "text": my_text})
+프런트엔드: {{ text }}
+         {% if text == "morning" %}
+            <h1>Good Morning!</h1>
+         {% elif text == "afternoon" %}
+            <h1>Good Afternoon!</h1>
+         {% else %}
+            <h1>Good Evening!</h1>
+         {% endif %}
