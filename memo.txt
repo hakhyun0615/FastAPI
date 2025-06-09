@@ -1,6 +1,6 @@
 https://drive.google.com/drive/folders/1qcpF6tvhWfgsQzw-Bp_pvyzkq4lUsFsL
 
-# FastAPI
+# (HTTP Request) -> FastAPI -> (HTTP Response)
 uvicorm main:app --reload
 
 [자동 문서화]
@@ -77,3 +77,67 @@ def template_inherit(request: Request):
          {% else %}
             <h1>Good Evening!</h1>
          {% endif %}
+
+----------------------------------------
+
+[데이터베이스 조회·삽입·수정]
+- PyMySQL: SQL 사용
+- ORM (SQLAlchemy): Python 사용
+
+[SQLAlchemy 비동기 방식]
+1. DB 접속
+engine = create_async_engine(
+    "mysql+aiomysql://funcoding:funcoding@localhost/db_name", 
+    echo=True # 로그 출력
+)
+2. Session 정의
+AsyncSessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine,
+    class_=AsyncSession
+)
+3. Session 생성
+async def get_db():
+    async with AsyncSessionLocal() as session:
+        yield session
+        await session.commit()
+4. Table 생성
+@asynccontextmanager
+async def app_lifespan(app: FastAPI):
+   # 애플리케이션 시작시
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+   # 애플리케이션 종료시
+    yield
+app = FastAPI(lifespan=app_lifespan)
+5. API 엔드포인트 추가
+@app.post("/users/")
+async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
+    new_user = User(username=user.username, email=user.email)
+    db.add(new_user)
+    await db.commit()
+    await db.refresh(new_user)
+    return {
+        "id": new_user.id,
+        "username": new_user.username,
+        "email": new_user.email
+    }
+@app.get("/users/{user_id}")
+async def read_user(user_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(User).filter(User.id == user_id))
+    db_user = result.scalars().first()
+    if db_user is None:
+        return {"error": "User not found"}
+    return {
+        "id": db_user.id,
+        "username": db_user.username,
+        "email": db_user.email
+    }
+
+----------------------------------------
+
+[MVC 모델]
+- Model: DB (database.py)
+- View: Frontend (templates folder)
+- Controller: API (main.py)

@@ -5,7 +5,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from pydantic import BaseModel
 from typing import Optional
 
-DATABASE_URL = "mysql+pymysql://funcoding:funcoding@localhost/db_name"  # 사용자의 데이터베이스 정보로 변경해야 합니다.
+DATABASE_URL = "mysql+pymysql://root:hd219833@localhost/db_name"  # 사용자의 데이터베이스 정보로 변경해야 합니다.
 engine = create_engine(DATABASE_URL)
 
 
